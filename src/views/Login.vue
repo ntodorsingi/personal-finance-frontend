@@ -22,7 +22,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import { findUserByUsername } from '../utils/mockDataBase'; // Import simulirane baze
+import { findUserByUsername } from '../utils/mockDataBase';
 
 export default defineComponent({
   name: 'Login',
@@ -53,7 +53,6 @@ export default defineComponent({
       if (Object.values(errors.value).every(error => !error)) {
         const user = findUserByUsername(form.value.username);
         if (user && user.password === form.value.password) {
-          // Login successful
           alert('Login successful!');
           // Implement further actions like redirecting the user
         } else {
