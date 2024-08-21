@@ -15,7 +15,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted } from 'vue';
-import { findUserByUsername } from '@/utils/mockDataBase'; // Adjust the path as necessary
+import axios from 'axios';
 
 export default defineComponent({
   name: 'Home',
@@ -23,11 +23,23 @@ export default defineComponent({
     const balance = ref<number | null>(null);
 
     // Fetch the balance of the logged-in user
-    const fetchBalance = () => {
-      const username = 'john_doe'; // Replace with actual logged-in user's username
-      const user = findUserByUsername(username);
-      if (user) {
-        balance.value = user.balance;
+    const fetchBalance = async () => {
+      try {
+        const token = localStorage.getItem('jwt');
+        if (!token) {
+          throw new Error('No token found');
+        }
+
+        const response = await axios.get('http://localhost:3000/api/user-status', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        balance.value = response.data.balance;
+      } catch (error) {
+        console.error('Error fetching user balance:', error);
+        balance.value = null;
       }
     };
 
