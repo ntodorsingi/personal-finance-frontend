@@ -1,40 +1,38 @@
 <template>
-  <div>
-    <div class="register-container">
-      <h2>Create an Account</h2>
-      <form @submit.prevent="handleRegister">
-        <div class="form-group">
-          <label for="username">Username</label>
-          <input type="text" id="username" v-model="form.username" />
-          <div v-if="errors.username" class="error-message">{{ errors.username }}</div>
-        </div>
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input type="email" id="email" v-model="form.email" />
-          <div v-if="errors.email" class="error-message">{{ errors.email }}</div>
-        </div>
-        <div class="form-group">
-          <label for="password">Password</label>
-          <input type="password" id="password" v-model="form.password" />
-          <div v-if="errors.password" class="error-message">{{ errors.password }}</div>
-        </div>
-        <div class="form-group">
-          <label for="confirmPassword">Confirm Password</label>
-          <input type="password" id="confirmPassword" v-model="form.confirmPassword" />
-          <div v-if="errors.confirmPassword" class="error-message">{{ errors.confirmPassword }}</div>
-        </div>
-        <button type="submit" class="submit-button">Register</button>
-      </form>
-      <p class="login-link">
-        Already have an account? <router-link to="/login">Login here</router-link>
-      </p>
-    </div>
+  <div class="register-container">
+    <h2>Create an Account</h2>
+    <form @submit.prevent="handleRegister">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" v-model="form.username" />
+        <div v-if="errors.username" class="error-message">{{ errors.username }}</div>
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" v-model="form.email" />
+        <div v-if="errors.email" class="error-message">{{ errors.email }}</div>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" v-model="form.password" />
+        <div v-if="errors.password" class="error-message">{{ errors.password }}</div>
+      </div>
+      <div class="form-group">
+        <label for="confirmPassword">Confirm Password</label>
+        <input type="password" id="confirmPassword" v-model="form.confirmPassword" />
+        <div v-if="errors.confirmPassword" class="error-message">{{ errors.confirmPassword }}</div>
+      </div>
+      <button type="submit" class="submit-button">Register</button>
+    </form>
+    <p class="login-link">
+      Already have an account? <router-link to="/login">Login here</router-link>
+    </p>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import api from '../utils/api'; // Importuj Axios instancu
+import axios from 'axios'; // Koristi standardnu instancu Axios
 
 export default defineComponent({
   name: 'Register',
@@ -61,6 +59,7 @@ export default defineComponent({
         confirmPassword: ''
       };
 
+      // Validacija forme
       if (!form.value.username) {
         errors.value.username = 'Username is required.';
       }
@@ -81,11 +80,12 @@ export default defineComponent({
 
       if (Object.values(errors.value).every(error => !error)) {
         try {
-          await api.post('/register', {
+          // Zameni `api.post` sa direktnim `axios.post`
+          await axios.post('http://localhost:3000/api/register', {
             username: form.value.username,
             email: form.value.email,
             password: form.value.password,
-            currency: 'USD' // Pretpostavljam da je podrazumevana valuta USD, možeš promeniti po potrebi
+            currency: 'USD'
           });
           alert('Registration successful!');
           // Redirect to login or other page

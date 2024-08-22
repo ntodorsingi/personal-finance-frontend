@@ -17,6 +17,14 @@
 import { defineComponent, ref, onMounted } from 'vue';
 import axios from 'axios';
 
+// Create an Axios instance with a base URL
+const apiClient = axios.create({
+  baseURL: 'http://localhost:3000/api', // Update this if necessary
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
 export default defineComponent({
   name: 'Home',
   setup() {
@@ -30,12 +38,14 @@ export default defineComponent({
           throw new Error('No token found');
         }
 
-        const response = await axios.get('http://localhost:3000/api/user-status', {
+        // Request to fetch user balance
+        const response = await apiClient.get('/user-status', {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         });
 
+        // Update balance with the response data
         balance.value = response.data.balance;
       } catch (error) {
         console.error('Error fetching user balance:', error);
@@ -49,15 +59,14 @@ export default defineComponent({
     });
 
     const addTransaction = () => {
-      // Functionality to add a transaction will be implemented later
       console.log('Add Transaction button clicked');
     };
 
     return {
       balance,
-      addTransaction
+      addTransaction,
     };
-  }
+  },
 });
 </script>
 

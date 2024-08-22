@@ -52,19 +52,23 @@ export default defineComponent({
 
       if (Object.values(errors.value).every(error => !error)) {
         try {
-          const response = await axios.post('http://localhost:3000/login', {
+          const response = await axios.post('http://localhost:3000/api/login', {
             username: form.value.username,
             password: form.value.password
           });
 
           const { token } = response.data;
-          localStorage.setItem('jwt', token);
-          alert('Login successful!');
-          // Redirect the user or perform further actions
-          window.location.href = '/'; // For example, redirect to home page
+          if (token) {
+            localStorage.setItem('jwt', token);
+            console.log('Token stored:', token); // Log token za debagovanje
+            alert('Login successful!');
+            window.location.href = '/'; // For example, redirect to home page
+          } else {
+            console.error('No token returned from the server.');
+            alert('Login failed: No token received.');
+          }
         } catch (error) {
           if (axios.isAxiosError(error)) {
-            // TypeScript knows this is an AxiosError
             const axiosError = error as AxiosError;
             if (axiosError.response && axiosError.response.status === 401) {
               errors.value.password = 'Invalid username or password.';
