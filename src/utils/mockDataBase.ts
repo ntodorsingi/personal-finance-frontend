@@ -43,12 +43,26 @@ const convertToDatabaseFormat = () => {
 // Initialize the database with converted data
 convertToDatabaseFormat();
 
-// Example function to find a user by username
+// Function to authenticate a user
+export const authenticateUser = (username: string, password: string) => {
+  const user = mockDatabase.users.find(user => user.username === username);
+
+  if (!user || user.password !== password) {
+    return { error: 'Invalid username or password.' };
+  }
+
+  // Mock a JWT token (in a real scenario, this would come from the server)
+  const token = 'mock-jwt-token-for-' + user.username;
+
+  return { token, userId: user.id };
+};
+
+// Function to find a user by username
 export const findUserByUsername = (username: string) => {
   return mockDatabase.users.find(user => user.username === username);
 };
 
-// Example function to add a new user
+// Function to add a new user
 export const addUser = (username: string, password: string, currency: string) => {
   const newUser: User = {
     id: mockDatabase.users.length + 1,
@@ -60,4 +74,25 @@ export const addUser = (username: string, password: string, currency: string) =>
   };
   mockDatabase.users.push(newUser);
   return newUser;
+};
+
+// Function to fetch transactions for a specific user
+export const getTransactionsByUserId = (userId: number) => {
+  return mockDatabase.transactions.filter(transaction => transaction.user_id === userId);
+};
+
+export const addTransaction = (userId: number, transaction: Transaction) => {
+  // Add the transaction to the mock database
+  mockDatabase.transactions.push({
+    ...transaction,
+    user_id: userId,
+    date: new Date(),
+    created_at: new Date(),
+  });
+
+  // Update the user's balance
+  const user = mockDatabase.users.find(user => user.id === userId);
+  if (user) {
+    user.balance += transaction.type === 'income' ? transaction.amount : -transaction.amount;
+  }
 };

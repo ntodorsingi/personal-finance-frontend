@@ -34,7 +34,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import api from '../utils/api'; // Importuj Axios instancu
+import { addUser, findUserByUsername } from '../utils/mockDataBase'; // Import your mock database functions
 
 export default defineComponent({
   name: 'Register',
@@ -53,7 +53,7 @@ export default defineComponent({
       confirmPassword: ''
     });
 
-    const handleRegister = async () => {
+    const handleRegister = () => {
       errors.value = {
         username: '',
         email: '',
@@ -63,6 +63,8 @@ export default defineComponent({
 
       if (!form.value.username) {
         errors.value.username = 'Username is required.';
+      } else if (findUserByUsername(form.value.username)) {
+        errors.value.username = 'Username is already taken.';
       }
 
       if (!form.value.email) {
@@ -80,20 +82,9 @@ export default defineComponent({
       }
 
       if (Object.values(errors.value).every(error => !error)) {
-        try {
-          await api.post('/register', {
-            username: form.value.username,
-            email: form.value.email,
-            password: form.value.password,
-            currency: 'USD' // Pretpostavljam da je podrazumevana valuta USD, možeš promeniti po potrebi
-          });
-          alert('Registration successful!');
-          // Redirect to login or other page
-          // this.$router.push('/login'); // Ako koristiš Vue Router za navigaciju
-        } catch (error) {
-          console.error('Error registering user:', error);
-          alert('Registration failed. Please try again.');
-        }
+        addUser(form.value.username, form.value.password, 'USD'); // Add user to mock database
+        alert('Registration successful!');
+        window.location.href = '/login'; // Redirect to login page
       }
     };
 

@@ -22,7 +22,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import axios, { AxiosError } from 'axios';
+import { authenticateUser } from '../utils/mockDataBase'; // Import your mock function
 
 export default defineComponent({
   name: 'Login',
@@ -52,30 +52,19 @@ export default defineComponent({
 
       if (Object.values(errors.value).every(error => !error)) {
         try {
-          const response = await axios.post('http://localhost:3000/login', {
-            username: form.value.username,
-            password: form.value.password
-          });
-
-          const { token } = response.data;
-          localStorage.setItem('jwt', token);
-          alert('Login successful!');
-          // Redirect the user or perform further actions
-          window.location.href = '/'; // For example, redirect to home page
-        } catch (error) {
-          if (axios.isAxiosError(error)) {
-            // TypeScript knows this is an AxiosError
-            const axiosError = error as AxiosError;
-            if (axiosError.response && axiosError.response.status === 401) {
-              errors.value.password = 'Invalid username or password.';
-            } else {
-              console.error('Error during login:', axiosError);
-              alert('An error occurred during login.');
-            }
-          } else {
-            console.error('Unexpected error:', error);
-            alert('An unexpected error occurred.');
+          // Mocking the login process
+          const { token, error } = authenticateUser(form.value.username, form.value.password);
+          
+          if (error) {
+            errors.value.password = error;
+          } else if (token) {
+            localStorage.setItem('jwt', token);
+            alert('Login successful!');
+            window.location.href = '/';
           }
+        } catch (error) {
+          console.error('Unexpected error:', error);
+          alert('An unexpected error occurred.');
         }
       }
     };

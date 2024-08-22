@@ -1,106 +1,172 @@
 <template>
-  <div class="home">
-    <div class="home-container">
-      <h1>Welcome to Your Personal Finance Tracker</h1>
-      <p>Your account overview is ready. Start managing your finances now!</p>
-      <div class="welcome-box">
-        <h2>Current Overview</h2>
-        <p v-if="balance !== null">Your current balance: ${{ balance.toFixed(2) }}</p>
-        <p v-else>Loading balance...</p>
-        <button class="add-transaction-button" @click="addTransaction">Add Transaction</button>
-      </div>
+  <div class="home-container">
+    <div class="balance-summary">
+      <h2>Balance: {{ balance.toFixed(2) }} USD</h2>
     </div>
+    <div class="transaction-form">
+      <h3>Add New Transaction</h3>
+      <form @submit.prevent="handleAddTransaction">
+        <div class="form-group">
+          <label for="amount">Amount</label>
+          <input type="number" id="amount" v-model="newTransaction.amount" />
+          <div v-if="errors.amount" class="error-message">{{ errors.amount }}</div>
+        </div>
+        <div class="form-group">
+          <label for="type">Type</label>
+          <select id="type" v-model="newTransaction.type">
+            <option value="income">Income</option>
+            <option value="expense">Expense</option>
+          </select>
+          <div v-if="errors.type" class="error-message">{{ errors.type }}</div>
+        </div>
+        <div class="form-group">
+          <label for="category">Category</label>
+          <input type="text" id="category" v-model="newTransaction.category" />
+          <div v-if="errors.category" class="error-message">{{ errors.category }}</div>
+        </div>
+        <div class="form-group">
+          <label for="description">Description</label>
+          <input type="text" id="description" v-model="newTransaction.description" />
+        </div>
+        <button type="submit" class="submit-button">Add Transaction</button>
+      </form>
+    </div>
+    <router-link to="/dashboard">Go to Dashboard</router-link>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
-import { findUserByUsername } from '@/utils/mockDataBase'; // Adjust the path as necessary
+import { defineComponent, ref } from 'vue';
+import { findUserByUsername, addTransaction, mockDatabase } from '../utils/mockDataBase';
 
 export default defineComponent({
   name: 'Home',
   setup() {
-    const balance = ref<number | null>(null);
+    const username = 'john_doe'; // Replace with actual logged-in user's username
+    const user = findUserByUsername(username);
 
-    // Fetch the balance of the logged-in user
-    const fetchBalance = () => {
-      const username = 'john_doe'; // Replace with actual logged-in user's username
-      const user = findUserByUsername(username);
-      if (user) {
-        balance.value = user.balance;
-      }
-    };
+    const balance = ref(user ? user.balance : 0);
 
-    // Call fetchBalance when component is mounted
-    onMounted(() => {
-      fetchBalance();
+    const newTransaction = ref({
+      amount: 0,
+      type: 'income' as 'income' | 'expense',
+      category: '',
+      description: ''
     });
 
-    const addTransaction = () => {
-      // Functionality to add a transaction will be implemented later
-      console.log('Add Transaction button clicked');
+    const errors = ref({
+      amount: '',
+      type: '',
+      category: ''
+    });
+
+    const handleAddTransaction = () => {
+      errors.value = {
+        amount: '',
+        type: '',
+        category: ''
+      };
+
+      if (newTransaction.value.amount <= 0) {
+        errors.value.amount = 'Amount must be greater than zero.';
+      }
+      if (!newTransaction.value.type) {
+        errors.value.type = 'Type is required.';
+      }
+      if (!newTransaction.value.category) {
+        errors.value.category = 'Category is required.';
+      }
+
+      if (Object.values(errors.value).every(error => !error)) {
+        if (user) {
+          addTransaction(user.id, {
+            amount: newTransaction.value.amount,
+            type: newTransaction.value.type,
+            category: newTransaction.value.category,
+            description: newTransaction.value.description,
+            id: mockDatabase.transactions.length + 1,
+            date: new Date(),
+            created_at: new Date(),
+            user_id: user.id,
+          });
+
+          // Reset the form
+          newTransaction.value = {
+            amount: 0,
+            type: 'income',
+            category: '',
+            description: ''
+          };
+
+          // Update the balance
+          balance.value = user.balance;
+
+          alert('Transaction added successfully!');
+        }
+      }
     };
 
     return {
       balance,
-      addTransaction
+      newTransaction,
+      errors,
+      handleAddTransaction
     };
   }
 });
 </script>
 
 <style scoped>
-.home {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  background-color: #e0f7fa;
-}
-
 .home-container {
-  max-width: 500px;
-  padding: 30px;
+  max-width: 600px;
+  margin: auto;
+  padding: 20px;
   border: 1px solid #ddd;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   background-color: #ffffff;
+}
+
+.balance-summary {
+  margin-bottom: 20px;
   text-align: center;
-}
-
-h1 {
-  font-size: 24px;
-  margin-bottom: 20px;
+  font-size: 28px;
   color: #333;
+  font-weight: bold;
 }
 
-p {
-  font-size: 16px;
+.transaction-form {
   margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
   color: #555;
 }
 
-.welcome-box {
-  background-color: #e0f7fa;
+input, select {
+  width: 100%;
+  padding: 10px;
   border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.welcome-box h2 {
-  font-size: 20px;
-  margin-top: 0;
-  color: #00796b;
-}
-
-.welcome-box p {
+  border: 1px solid #ddd;
   font-size: 16px;
-  color: #00796b;
 }
 
-.add-transaction-button {
-  margin-top: 20px;
-  padding: 10px 20px;
+.error-message {
+  color: #ff4d4d;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+.submit-button {
+  width: 100%;
+  padding: 12px;
   border: none;
   border-radius: 8px;
   background-color: #007bff;
@@ -110,7 +176,19 @@ p {
   transition: background-color 0.3s;
 }
 
-.add-transaction-button:hover {
+.submit-button:hover {
   background-color: #0056b3;
+}
+
+.dashboard-link {
+  display: block;
+  margin-top: 20px;
+  text-align: center;
+  color: #007bff;
+  text-decoration: none;
+}
+
+.dashboard-link:hover {
+  text-decoration: underline;
 }
 </style>
