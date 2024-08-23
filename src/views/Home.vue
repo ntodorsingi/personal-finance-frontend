@@ -36,7 +36,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, ref, computed } from 'vue';
 import { findUserByUsername, addTransaction, mockDatabase } from '../utils/mockDataBase';
 
 export default defineComponent({
@@ -45,8 +45,8 @@ export default defineComponent({
     const username = 'john_doe'; // Replace with actual logged-in user's username
     const user = findUserByUsername(username);
 
-    const balance = ref(user ? user.balance : 0);
-
+    const transactions = ref(user ? mockDatabase.transactions.filter(tx => tx.user_id === user.id) : []);
+    
     const newTransaction = ref({
       amount: 0,
       type: 'income' as 'income' | 'expense',
@@ -58,6 +58,12 @@ export default defineComponent({
       amount: '',
       type: '',
       category: ''
+    });
+
+    const balance = computed(() => {
+      return transactions.value.reduce((sum, tx) => {
+        return tx.type === 'income' ? sum + tx.amount : sum - tx.amount;
+      }, 0);
     });
 
     const handleAddTransaction = () => {
@@ -79,7 +85,7 @@ export default defineComponent({
 
       if (Object.values(errors.value).every(error => !error)) {
         if (user) {
-          addTransaction(user.id, {
+          const transaction = {
             amount: newTransaction.value.amount,
             type: newTransaction.value.type,
             category: newTransaction.value.category,
@@ -88,7 +94,10 @@ export default defineComponent({
             date: new Date(),
             created_at: new Date(),
             user_id: user.id,
-          });
+          };
+
+          addTransaction(user.id, transaction);
+          transactions.value.push(transaction); // Update local transactions
 
           // Reset the form
           newTransaction.value = {
@@ -97,9 +106,6 @@ export default defineComponent({
             category: '',
             description: ''
           };
-
-          // Update the balance
-          balance.value = user.balance;
 
           alert('Transaction added successfully!');
         }
